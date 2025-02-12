@@ -12,6 +12,6 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "example_bucket" {
-  bucket = "abcdef123-bucket"
+  bucket = "bucket-foraws-2d4rt"
   acl    = "private"
 }
