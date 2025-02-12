@@ -13,22 +13,7 @@ provider "aws" {
   region = var.region
 }
 
-<<<<<<< HEAD
 resource "aws_s3_bucket" "example_bucket" {
-  bucket = "bucket-foraws-2d4rt"
+  bucket = "bucket-foraws-2d4rt6777"
   acl    = "private"
-=======
-module "s3_source" {
-  source = "./S3_source.tf"
-}
-
-module "s3_dest" {
-  source = "./S3_dest.tf"
-}
-
-module "glue" {
-  source        = "./Glue.tf"
-  source_bucket = module.s3_source.bucket_id
-  dest_bucket   = module.s3_dest.bucket_id
->>>>>>> 9699509 (Real Project)
 }
