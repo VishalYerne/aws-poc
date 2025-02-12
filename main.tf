@@ -13,15 +13,16 @@ provider "aws" {
 }
 
 module "s3_source" {
-  source = "./S3_source.tf"
+  source = "./"  
 }
 
 module "s3_dest" {
-  source = "./S3_dest.tf"
+  source = "./"  
 }
 
+
 module "glue" {
-  source        = "./Glue.tf"
-  source_bucket = module.s3_source.bucket_id
-  dest_bucket   = module.s3_dest.bucket_id
+  source        = "./"
+  source_bucket = module.s3_source.source_bucket_id
+  dest_bucket   = module.s3_dest.dest_bucket_id
 }

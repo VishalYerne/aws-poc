@@ -18,6 +18,6 @@ resource "aws_s3_object" "glue_script" {
   content_type = "text/x-python"
 }
 
-output "bucket_id" {
+output "source_bucket_id" {
   value = aws_s3_bucket.source_bucket.id
 }
