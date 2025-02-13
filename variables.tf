@@ -12,4 +12,5 @@ variable "dest_bucket_name" {
 
 variable "glue_role_arn" {
   description = "IAM Role ARN for AWS Glue"
+  default     = "arn:aws:iam::aws:policy/AWSGlueConsoleFullAccess"
 }
