@@ -1,3 +1,4 @@
+# Upload etl.py to Source S3
 resource "aws_s3_object" "glue_script" {
   bucket = aws_s3_bucket.source_bucket.id
   key    = "glue_scripts/etl.py"
