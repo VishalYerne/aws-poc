@@ -11,14 +11,15 @@ permissions:
 env:
   TF_ROOT: "./"
   AWS_REGION: "us-east-1"
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }} 
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-  
 jobs:
   setup:
     name: Setup Terraform
     runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache.outputs.cache-hit }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -28,13 +29,13 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Remove Lock File (Only Once)
-        run: rm -f .terraform.lock.hcl  # This ensures we start clean
+      - name: Remove Lock File (Fixes Dependency Issues)
+        run: rm -f .terraform.lock.hcl
 
       - name: Initialize Terraform
         run: terraform init -upgrade
 
-      - name: Save Terraform Lock File & Workspace as Artifact
+      - name: Save Workspace as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: workspace
@@ -49,14 +50,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: workspace
-          path: .
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
 
-      - name: Initialize Terraform (Ensure Lock File is Used)
+      - name: Remove Lock File (Fixes Dependency Issues)
+        run: rm -f .terraform.lock.hcl
+
+      - name: Initialize Terraform
         run: terraform init -upgrade
 
       - name: Terraform Validate
@@ -71,14 +74,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: workspace
-          path: .
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
 
-      - name: Initialize Terraform (Ensure Lock File is Used)
+      - name: Remove Lock File (Fixes Dependency Issues)
+        run: rm -f .terraform.lock.hcl
+
+      - name: Initialize Terraform
         run: terraform init -upgrade
 
       - name: Terraform Plan
@@ -96,12 +101,6 @@ jobs:
     needs: plan
     environment: development 
     steps:
-      - name: Download Terraform Plan & Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
-          path: .
-
       - name: Download Terraform Plan
         uses: actions/download-artifact@v4
         with:
@@ -112,7 +111,10 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Initialize Terraform (Ensure Lock File is Used)
+      - name: Remove Lock File (Fixes Dependency Issues)
+        run: rm -f .terraform.lock.hcl
+
+      - name: Initialize Terraform
         run: terraform init -upgrade
 
       - name: Apply Terraform Plan
