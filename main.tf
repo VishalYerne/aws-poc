@@ -3,7 +3,7 @@ terraform {
 
   backend "s3" {
     bucket  = "my-terraform-test-bucket-2"
-    key     = "terraform.tfstate"  # Defines where the state file will be stored
+    key     = "terraform.tfstate"  
     region  = "us-east-1"
   
   }
