@@ -5,7 +5,6 @@ terraform {
     bucket = "terraform-backend-bucket5"
     key    = "terraform/state"
     region = "us-east-1"
-    default = "arn:aws:s3:::terraform-backend-bucket5"
   }
 }
 
