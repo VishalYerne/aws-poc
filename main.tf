@@ -3,7 +3,7 @@ terraform {
 
   backend "s3" {
     bucket  = "terraform-backend-bucket123"
-    key     = "terraform.tfstate"  # Defines where the state file will be stored
+    key     = "env-dev/terraform.tfstate"  # Defines where the state file will be stored
     region  = "us-east-1"
   
   }
