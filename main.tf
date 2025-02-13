@@ -2,8 +2,8 @@ terraform {
   required_version = ">= 1.3.0"
 
   backend "s3" {
-    bucket  = "terraform-backend-bucket123"
-    key     = "env-dev/terraform.tfstate"  # Defines where the state file will be stored
+    bucket  = "my-terraform-test-bucket-1"
+    key     = "terraform.tfstate"  # Defines where the state file will be stored
     region  = "us-east-1"
   
   }
