@@ -6,6 +6,6 @@ resource "aws_s3_bucket" "source_bucket" {
 resource "aws_s3_object" "initial_data" {
   bucket = aws_s3_bucket.source_bucket.id
   key    = "Initial_data.csv"
-  source = "${path.module}/data/initial.csv"
+  source = "${path.module}/data/initial_data.csv"
   content_type = "text/csv"
 }
