@@ -1,3 +1,10 @@
+resource "aws_s3_object" "glue_script" {
+  bucket = aws_s3_bucket.source_bucket.id
+  key    = "glue_scripts/etl.py"
+  source = "${path.module}/data/etl.py"
+  content_type = "text/x-python"
+}
+
 resource "aws_glue_job" "glue_etl" {
   name     = "glue-etl-job"
   role_arn = var.glue_role_arn
