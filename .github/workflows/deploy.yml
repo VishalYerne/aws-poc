@@ -38,6 +38,9 @@ jobs:
       - name: Initialize Terraform
         run: terraform init -upgrade
 
+      - name: Generate Terraform Lock File
+        run: terraform providers lock -platform=linux_amd64  # ✅ Creates terraform.lock.hcl
+
       - name: Save Workspace as Artifact
         uses: actions/upload-artifact@v4
         with:
