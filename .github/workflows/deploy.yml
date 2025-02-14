@@ -20,7 +20,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ✅ Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -33,19 +32,15 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Cache Terraform Dependencies
-        uses: actions/cache@v3
-        with:
-          path: .terraform
-          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
-          restore-keys: |
-            ${{ runner.os }}-terraform-
-
       - name: Initialize Terraform
         run: terraform init -upgrade
 
-      - name: Generate Terraform Lock File
-        run: terraform providers lock -platform=linux_amd64  # ✅ Creates terraform.lock.hcl
+      # ✅ Upload terraform.lock.hcl for consistency
+      - name: Upload Terraform Lock File
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-lock
+          path: terraform.lock.hcl
 
       - name: Save Terraform Workspace
         uses: actions/upload-artifact@v4
@@ -66,7 +61,12 @@ jobs:
         with:
           name: workspace
 
-      # ✅ Configure AWS Credentials
+      # ✅ Download terraform.lock.hcl
+      - name: Download Terraform Lock File
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-lock
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -80,7 +80,7 @@ jobs:
           terraform_version: latest
 
       - name: Initialize Terraform
-        run: terraform init
+        run: terraform init -upgrade=false
 
       - name: Terraform Validate
         run: terraform validate
@@ -95,7 +95,12 @@ jobs:
         with:
           name: workspace
 
-      # ✅ Configure AWS Credentials
+      # ✅ Download terraform.lock.hcl
+      - name: Download Terraform Lock File
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-lock
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -109,9 +114,9 @@ jobs:
           terraform_version: latest
 
       - name: Initialize Terraform
-        run: terraform init
+        run: terraform init -upgrade=false
 
-      # ✅ Ensure Terraform Plan Generates `tfplan`
+      # ✅ Generate Terraform Plan
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
@@ -137,11 +142,15 @@ jobs:
         with:
           name: terraform-plan
 
-      # ✅ Check if `tfplan` Exists Before Applying
+      # ✅ Download terraform.lock.hcl
+      - name: Download Terraform Lock File
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-lock
+
       - name: Verify tfplan File
         run: ls -lah tfplan || echo "⚠️ tfplan not found!"
 
-      # ✅ Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -155,7 +164,7 @@ jobs:
           terraform_version: latest
 
       - name: Initialize Terraform
-        run: terraform init
+        run: terraform init -upgrade=false
 
       - name: Apply Terraform Plan
         run: terraform apply -auto-approve tfplan
