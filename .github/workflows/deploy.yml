@@ -101,10 +101,6 @@ jobs:
     needs: plan
     environment: development 
     steps:
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-plan
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -113,6 +109,9 @@ jobs:
 
       - name: Initialize Terraform
         run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan 
 
       - name: Apply Terraform Plan
         run: terraform apply -auto-approve tfplan
