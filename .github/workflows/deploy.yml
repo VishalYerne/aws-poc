@@ -155,8 +155,8 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Initialize Terraform
-        run: terraform init
+      #- name: Initialize Terraform
+      #run: terraform init
 
       - name: Apply Terraform Plan
         run: terraform apply -auto-approve tfplan
