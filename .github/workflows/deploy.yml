@@ -11,8 +11,6 @@ permissions:
 env:
   TF_ROOT: "./"
   AWS_REGION: "us-east-1"
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   setup:
@@ -38,28 +36,23 @@ jobs:
       - name: Initialize Terraform
         run: terraform init -upgrade
 
-      - name: Save Terraform Lock File
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-lock
-          path: terraform.lock.hcl
+      - name: Generate Terraform Lock File
+        run: terraform providers lock -platform=linux_amd64  # ✅ Creates terraform.lock.hcl
 
-      - name: Save Workspace as Artifact
+      - name: Save Terraform Workspace
         uses: actions/upload-artifact@v4
         with:
           name: workspace
-          path: .
+          path: |
+            .
+            !terraform.tfstate
+            !terraform.tfstate.backup
 
   validate:
     name: Terraform Validate
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - name: Download Terraform Lock File
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-lock
-
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
@@ -81,11 +74,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate
     steps:
-      - name: Download Terraform Lock File
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-lock
-
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
@@ -112,13 +100,8 @@ jobs:
     name: Terraform Apply (Manual)
     runs-on: ubuntu-latest
     needs: plan
-    environment: development 
+    environment: development
     steps:
-      - name: Download Terraform Lock File
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-lock
-
       - name: Download Terraform Plan
         uses: actions/download-artifact@v4
         with:
