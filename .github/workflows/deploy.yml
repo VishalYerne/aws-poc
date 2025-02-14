@@ -111,9 +111,15 @@ jobs:
       - name: Initialize Terraform
         run: terraform init
 
+      # ✅ Ensure Terraform Plan Generates `tfplan`
       - name: Terraform Plan
-        run: terraform plan 
+        run: terraform plan -out=tfplan
 
+      # ✅ Check if `tfplan` Exists Before Uploading
+      - name: Verify tfplan File
+        run: ls -lah tfplan || echo "⚠️ tfplan not found!"
+
+      # ✅ Upload the `tfplan` File
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
         with:
@@ -130,6 +136,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: terraform-plan
+
+      # ✅ Check if `tfplan` Exists Before Applying
+      - name: Verify tfplan File
+        run: ls -lah tfplan || echo "⚠️ tfplan not found!"
 
       # ✅ Configure AWS Credentials
       - name: Configure AWS Credentials
