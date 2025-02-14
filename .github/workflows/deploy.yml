@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+
 env:
   TF_ROOT: "./"
   AWS_REGION: "us-east-1"
@@ -17,8 +18,6 @@ jobs:
   setup:
     name: Setup Terraform
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache.outputs.cache-hit }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -28,8 +27,13 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Remove Lock File (Fixes Dependency Issues)
-        run: rm -f .terraform.lock.hcl
+      - name: Cache Terraform Dependencies
+        uses: actions/cache@v3
+        with:
+          path: .terraform
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
 
       - name: Initialize Terraform
         run: terraform init -upgrade
@@ -55,11 +59,8 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Remove Lock File (Fixes Dependency Issues)
-        run: rm -f .terraform.lock.hcl
-
       - name: Initialize Terraform
-        run: terraform init -upgrade
+        run: terraform init
 
       - name: Terraform Validate
         run: terraform validate
@@ -79,11 +80,8 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Remove Lock File (Fixes Dependency Issues)
-        run: rm -f .terraform.lock.hcl
-
       - name: Initialize Terraform
-        run: terraform init -upgrade
+        run: terraform init
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
@@ -110,11 +108,8 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Remove Lock File (Fixes Dependency Issues)
-        run: rm -f .terraform.lock.hcl
-
       - name: Initialize Terraform
-        run: terraform init -upgrade
+        run: terraform init
 
       - name: Apply Terraform Plan
         run: terraform apply -auto-approve tfplan
