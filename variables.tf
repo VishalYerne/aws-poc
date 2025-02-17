@@ -12,5 +12,5 @@ variable "dest_bucket_name" {
 
 variable "glue_role_arn" {
   description = "IAM Role ARN for AWS Glue"
-  default     = "arn:aws:iam::661907950294:role/glue_access_terraform"
+  default     = "arn:aws:iam::256487924128:role/glue_terraform"
 }
