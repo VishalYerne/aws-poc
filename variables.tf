@@ -3,11 +3,11 @@ variable "region" {
 }
 
 variable "source_bucket_name" {
-  default = "source-s3-bucket-981"
+  default = "source-s3-bucket-982"
 }
 
 variable "dest_bucket_name" {
-  default = "dest-s3-bucket-981"
+  default = "dest-s3-bucket-982"
 }
 
 variable "glue_role_arn" {
