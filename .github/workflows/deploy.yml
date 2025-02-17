@@ -1,3 +1,4 @@
+
 name: 'Terraform CI/CD'
 
 on:
@@ -7,38 +8,54 @@ on:
 
 permissions:
   contents: read
+
 env:
   TF_ROOT: "./"
   AWS_REGION: "us-east-1"
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   setup:
     name: Setup Terraform
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache.outputs.cache-hit }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # ✅ Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: latest
+          terraform_version: "1.10.5"
 
-      - name: Remove Lock File (Fixes Dependency Issues)
-        run: rm -f .terraform.lock.hcl
+      - name: Cache Terraform Dependencies
+        uses: actions/cache@v3
+        with:
+          path: .terraform
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
 
       - name: Initialize Terraform
         run: terraform init -upgrade
 
-      - name: Save Workspace as Artifact
+      - name: Generate Terraform Lock File
+        run: terraform providers lock -platform=linux_amd64  # ✅ Creates terraform.lock.hcl
+
+      - name: Save Terraform Workspace
         uses: actions/upload-artifact@v4
         with:
           name: workspace
-          path: .
+          path: |
+            .
+            !terraform.tfstate
+            !terraform.tfstate.backup
 
   validate:
     name: Terraform Validate
@@ -50,16 +67,21 @@ jobs:
         with:
           name: workspace
 
+      # ✅ Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
 
-      - name: Remove Lock File (Fixes Dependency Issues)
-        run: rm -f .terraform.lock.hcl
-
       - name: Initialize Terraform
-        run: terraform init -upgrade
+        run: terraform init
 
       - name: Terraform Validate
         run: terraform validate
@@ -74,20 +96,31 @@ jobs:
         with:
           name: workspace
 
+      # ✅ Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
 
-      - name: Remove Lock File (Fixes Dependency Issues)
-        run: rm -f .terraform.lock.hcl
-
       - name: Initialize Terraform
-        run: terraform init -upgrade
+        run: terraform init
 
+      # ✅ Ensure Terraform Plan Generates `tfplan`
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
+      # ✅ Check if `tfplan` Exists Before Uploading
+      - name: Verify tfplan File
+        run: ls -lah tfplan || echo "⚠️ tfplan not found!"
+
+      # ✅ Upload the `tfplan` File
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
         with:
@@ -98,23 +131,32 @@ jobs:
     name: Terraform Apply (Manual)
     runs-on: ubuntu-latest
     needs: plan
-    environment: development 
+    environment: development
     steps:
       - name: Download Terraform Plan
         uses: actions/download-artifact@v4
         with:
           name: terraform-plan
 
+      # ✅ Check if `tfplan` Exists Before Applying
+      - name: Verify tfplan File
+        run: ls -lah tfplan || echo "⚠️ tfplan not found!"
+
+      # ✅ Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
 
-      - name: Remove Lock File (Fixes Dependency Issues)
-        run: rm -f .terraform.lock.hcl
-
       - name: Initialize Terraform
-        run: terraform init -upgrade
+        run: terraform init -lockfile=readonly
 
       - name: Apply Terraform Plan
         run: terraform apply -auto-approve tfplan
